@@ -10,6 +10,13 @@ server.get("/", (req, res) => {
 })
 
 server.get("/test", (req, res) => {
+    // form with two inputs
+    res.setHeader("Content-Type", "text/html");
+    res.end("<form action='/test' method='POST'><input type='text' name='name'><input type='text' name='age'> <input type='submit'></form>");
+})
+
+server.post("/test", (req, res) => {
+    console.log(req.body);
     res.end("test");
 })
 

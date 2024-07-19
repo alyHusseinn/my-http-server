@@ -22,43 +22,51 @@ class Server {
   #handleConnection(socket) {
     socket.once("readable", () => {
       // buffer hold the incoming data
-      let reqBuffer = Buffer.alloc(0);
-      let reqHeader;
-      let buf;
+      try {
+        let reqBuffer = Buffer.alloc(0);
+        let buf;
 
-      while ((buf = socket.read()) !== null) {
-        reqBuffer = Buffer.concat([reqBuffer, buf]);
-        // Check if we've reached \r\n\r\n, indicating end of header
-        const headerEndIdx = reqBuffer.indexOf("\r\n\r\n");
-        if (headerEndIdx !== -1) {
-          const remainingData = reqBuffer.subarray(headerEndIdx + 4);
-          reqHeader = reqBuffer.subarray(0, headerEndIdx).toString();
-          // push the reminaing data back to the socket
-          socket.unshift(remainingData);
-          break;
+        while ((buf = socket.read()) !== null) {
+          reqBuffer = Buffer.concat([reqBuffer, buf]);
+          // Check if we've reached \r\n\r\n, indicating end of header
+          // const headerEndIdx = reqBuffer.indexOf("\r\n\r\n");
+          // if (headerEndIdx !== -1) {
+          //   const remainingData = reqBuffer.subarray(headerEndIdx + 4);
+          //   console.log(remainingData.toString());
+          //   reqHeader = reqBuffer.subarray(0, headerEndIdx).toString();
+          //   // push the reminaing data back to the socket
+          //   socket.unshift(remainingData);
+          //   break;
+          // }
         }
-      }
 
-      this.request = new Request(reqHeader, socket);
-      this.response = new Response(socket);
+        if (reqBuffer) {
+          this.request = new Request(reqBuffer, socket);
+          this.response = new Response(socket);
 
-      if (this.routes[this.request.method][this.request.path]) {
-        // call all the handlers use before the route handler
-        for (let path in this.routes.use) {
-          this.routes.use[path](this.request, this.response);
+          const routeHandler =
+            this.routes[this.request.method]?.[this.request.path];
+          if (routeHandler) {
+            for (let path in this.routes.use) {
+              this.routes.use[path](this.request, this.response);
+            }
+            routeHandler(this.request, this.response);
+          } else {
+            this.response.setStatus(404, "Not Found");
+            this.response.end("404 Not Found");
+          }
+        } else {
+          socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
         }
-        this.routes[this.request.method][this.request.path](
-          this.request,
-          this.response
-        );
-      } else {
-        this.response.end("Not Found");
+      } catch (err) {
+        console.log(err);
+        socket.end("HTTP/1.1 500 Internal Server Error\r\n\r\n");
       }
     });
 
-    // socket.on("error", (err) => {
-    //   console.error("Socket error:", err);
-    // });
+    socket.on("error", (err) => {
+      console.error("Socket error:", err);
+    });
   }
 
   //
