@@ -1,5 +1,5 @@
 class Request {
-  constructor(reqBuffer, socket) {
+  constructor(reqHeader, socket) {
     this.body;
     this.method;
     this.path;
@@ -7,20 +7,13 @@ class Request {
     this.httpVersion;
     this.socket = socket;
 
-    this.#parseHeaders(reqBuffer);
+    this.#parseHeaders(reqHeader);
 
-    this.#parseBody(reqBuffer);
+    // this.#parseBody(reqBody);
   }
 
-  #parseHeaders(reqBuffer) {
-    // Check if we've reached \r\n\r\n, indicating end of header
-    const headerEndIdx = reqBuffer.indexOf("\r\n\r\n");
+  #parseHeaders(reqHeader) {
 
-    if (headerEndIdx !== -1) {
-      //   const remainingData = reqBuffer.subarray(headerEndIdx + 4);
-      let reqHeader = reqBuffer.subarray(0, headerEndIdx).toString();
-      // push the reminaing data back to the socket
-      //   this.socket.unshift(remainingData);
       const requestHeaders = reqHeader.split("\r\n");
       const reqFirstLine = requestHeaders[0].split(" ");
       this.headers = requestHeaders.reduce((acc, currentHeader) => {
@@ -32,7 +25,7 @@ class Request {
       this.path = reqFirstLine[1];
       this.method = reqFirstLine[0];
       this.httpVersion = reqFirstLine[2].split("/")[1];
-    }
+    // }
   }
 
   #parseBody(reqBuffer) {

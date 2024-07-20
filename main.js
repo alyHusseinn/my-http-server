@@ -1,18 +1,23 @@
 const Server = require("./http-server/server");
+const logger = require("./middlewares/logger");
 
 const server = new Server();
 server.listen(3000, () => {
     console.log("Server running on port 3000");
 });
 
+server.static("./public");
+
+server.use("/",logger);
+
 server.get("/", (req, res) => {
+    res.setHeader("Content-Type", "text/html");
     res.end("Hello World");
 })
 
-server.get("/test", (req, res) => {
+server.get("/json", (req, res) => {
     // form with two inputs
-    res.setHeader("Content-Type", "text/html");
-    res.end("<form action='/test' method='POST'><input type='text' name='name'><input type='text' name='age'> <input type='submit'></form>");
+    res.json(req)
 })
 
 server.post("/test", (req, res) => {
@@ -20,8 +25,11 @@ server.post("/test", (req, res) => {
     res.end("test");
 })
 
-// middleware Logger
-server.use("/test", (req, res) => {
-    // print like morgan logger in the console
-    console.log(req.method, req.path, res.status);
+server.get("/app/html", (req, res) => {
+    res.html("index.html");
+})
+
+server.get("/a7a", (req, res) => {
+    res.setHeader("Content-Type", "text/html");
+    res.end("<h1>a7a</h1>");
 })

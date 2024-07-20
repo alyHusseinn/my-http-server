@@ -1,3 +1,6 @@
+const fs = require("fs");
+const path = require("path");
+
 class Response {
   constructor(socket) {
     this.socket = socket;
@@ -6,6 +9,11 @@ class Response {
     this.isChunked = false;
     this.status = 200;
     this.statusText = "OK";
+    this.staticFolderPath ;
+  }
+
+  setStaticFolderPath(filePath) {
+    this.staticFolderPath = filePath;
   }
 
   write(chunk) {
@@ -24,6 +32,7 @@ class Response {
       }
     } catch (error) {
       console.error("Error writing to socket:", error);
+      this.setStatus(500, "Internal Server Error");
       this.socket.destroy(); // Properly close the socket in case of an error
     }
   }
@@ -39,7 +48,7 @@ class Response {
     try {
       if (this.isChunked) {
         if (chunk) {
-          this.socket.write(`${chunk.length.toString(16)}\r\n${chunk}\r\n`);
+          this.socket.end(`${chunk.length.toString(16)}\r\n${chunk}\r\n`);
         } else {
           this.socket.end("0\r\n\r\n");
         }
@@ -48,6 +57,7 @@ class Response {
       }
     } catch (error) {
       console.error("Error ending response:", error);
+      this.setStatus(500, "Internal Server Error");
       this.socket.destroy(); // Properly close the socket in case of an error
     }
   }
@@ -95,6 +105,30 @@ class Response {
       this.socket.destroy(); // Properly close the socket in case of an error
     }
   }
+
+  // serve html files by just enter the file name
+  html(filePath) {
+    if (this.headersSent) {
+      throw new Error("Headers already sent. Cannot proceed.");
+    }
+
+    if (!this.staticFolderPath) {
+      throw new Error("Static folder path not set. Cannot proceed.");
+    }
+
+    const fullPath = path.join(this.staticFolderPath, filePath);
+    const html = fs.readFileSync(fullPath);
+    this.setHeader("content-type", "text/html");
+    this.setHeader("content-length", html.length);
+    this.#sendHeaders();
+    try {
+      this.socket.write(html);
+      this.socket.end();
+    } catch (error) {
+      console.error("Error sending HTML response:", error);
+      this.socket.destroy(); // Properly close the socket in case of an error
+    }
+  } 
 }
 
 module.exports = Response;
