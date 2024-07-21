@@ -9,7 +9,7 @@ class Response {
     this.isChunked = false;
     this.status = 200;
     this.statusText = "OK";
-    this.staticFolderPath ;
+    this.staticFolderPath;
   }
 
   setStaticFolderPath(filePath) {
@@ -38,7 +38,7 @@ class Response {
   }
 
   end(chunk) {
-    if (!this.headersSent) { 
+    if (!this.headersSent) {
       if (!this.headers["content-length"]) {
         this.isChunked = true;
         this.setHeader("transfer-encoding", "chunked");
@@ -128,7 +128,39 @@ class Response {
       console.error("Error sending HTML response:", error);
       this.socket.destroy(); // Properly close the socket in case of an error
     }
-  } 
+  }
+
+  download(filePath, fileName = path.basename(filePath)) {
+    fs.stat(filePath, (err, stats) => {
+      if (err) {
+        if (err.code === "ENOENT") {
+          this.setStatus(404, "Not Found");
+          this.end("404 Not Found");
+        } else {
+          this.setStatus(500, "Internal Server Error");
+          this.end("500 Internal Server Error");
+        }
+        return;
+      }
+
+      this.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${fileName}"`
+      );
+      this.setHeader("Content-Type", "application/octet-stream");
+      this.setHeader("Content-Length", stats.size);
+
+      this.#sendHeaders();
+
+      const readStream = fs.createReadStream(filePath);
+      readStream.pipe(this.socket);
+      readStream.on("end", () => this.socket.end());
+      readStream.on("error", () => {
+        this.setStatus(500, "Internal Server Error");
+        this.end("500 Internal Server Error");
+      });
+    });
+  }
 }
 
 module.exports = Response;

@@ -33,3 +33,7 @@ server.get("/a7a", (req, res) => {
     res.setHeader("Content-Type", "text/html");
     res.end("<h1>a7a</h1>");
 })
+
+server.get("/download", (req, res) => {
+    res.download("./public/img.jpg", "1.jpg");
+})
