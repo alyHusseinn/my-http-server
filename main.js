@@ -1,5 +1,6 @@
 const Server = require("./http-server/server");
 const logger = require("./middlewares/logger");
+const bodyParser = require("./middlewares/bodyParser");
 
 const server = new Server();
 server.listen(3000, () => {
@@ -8,7 +9,9 @@ server.listen(3000, () => {
 
 server.static("./public");
 
-server.use("/",logger);
+server.use(logger);
+
+server.use(bodyParser);
 
 server.get("/", (req, res) => {
     res.setHeader("Content-Type", "text/html");
@@ -26,7 +29,7 @@ server.post("/test", (req, res) => {
 })
 
 server.get("/app/html", (req, res) => {
-    res.html("index.html");
+    res.render("index.html");
 })
 
 server.get("/a7a", (req, res) => {
@@ -36,4 +39,18 @@ server.get("/a7a", (req, res) => {
 
 server.get("/download", (req, res) => {
     res.download("./public/img.jpg", "1.jpg");
+    // res.redirect("/app/html");
+})
+
+server.get("/redirect", (req, res) => {
+    res.redirect("/app/html");
+})
+
+server.get("/login", (req, res) => {
+    res.render("login.html");
+})
+
+server.post("/login", (req, res) => {    
+    console.log(req.body);
+    res.end("login");
 })

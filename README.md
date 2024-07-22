@@ -7,5 +7,5 @@
 - [ ] Build a Body Parser
 - [ ] Make the `next` method available
 - [ ] the Error Handler
-- [ ] Build express methods like ( download, redirect )
+- [x] Build express methods like ( download, redirect )
 - [x] Serve Static files (html, javascript, css, ..etc)

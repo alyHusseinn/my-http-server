@@ -5,7 +5,7 @@ let chalk;
 })();
 
 // Logger middleware
-function logger(req, res) {
+function logger(req, res, next) {
   const methodColor = chalk.green(req.method);
   const pathColor = chalk.blue(req.path);
   
@@ -24,6 +24,8 @@ function logger(req, res) {
   }
 
   console.log(`${methodColor} ${pathColor} ${statusColor} ${res.statusText}`);
+
+  next();
 }
 
 module.exports = logger;

@@ -107,7 +107,7 @@ class Response {
   }
 
   // serve html files by just enter the file name
-  html(filePath) {
+  render(filePath) {
     if (this.headersSent) {
       throw new Error("Headers already sent. Cannot proceed.");
     }
@@ -161,6 +161,25 @@ class Response {
       });
     });
   }
+
+  redirect(url) {
+    if (this.headersSent) {
+      throw new Error("Headers already sent. Cannot proceed.");
+    }
+    this.setHeader("location", url);
+    this.setStatus(302, "Found");
+    this.#sendHeaders();
+    this.socket.end();
+  }
+
+  // cookie(key, value, options = {}) {
+  //   if (this.headersSent) {
+  //     throw new Error("Headers already sent. Cannot proceed.");
+  //   }
+  //   const cookie = cookieParser.serialize(key, value, options);
+  //   this.setHeader("set-cookie", cookie);
+  //   this.#sendHeaders();
+  // }
 }
 
 module.exports = Response;
