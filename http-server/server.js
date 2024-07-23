@@ -82,7 +82,7 @@ class Server {
     });
   }
 
-  // thanks ChatGPT :) for this function applyMiddleware
+
   #applyMiddleware(req, res, next) {
     const pathToMiddleware = (path) => {
       return this.routes.use[path] || [];

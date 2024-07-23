@@ -8,6 +8,7 @@ let chalk;
 function logger(req, res, next) {
   const methodColor = chalk.green(req.method);
   const pathColor = chalk.blue(req.path);
+  const ip = req.ip;
   
   // Apply color based on status code
   let statusColor;
@@ -23,7 +24,7 @@ function logger(req, res, next) {
     statusColor = chalk.white(res.status);
   }
 
-  console.log(`${methodColor} ${pathColor} ${statusColor} ${res.statusText}`);
+  console.log(`${methodColor} ${pathColor} ${statusColor} ${res.statusText} ${ip}`);
 
   next();
 }

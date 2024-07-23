@@ -1,56 +1,61 @@
 const Server = require("./http-server/server");
 const logger = require("./middlewares/logger");
 const bodyParser = require("./middlewares/bodyParser");
+const rateLimiter = require("./middlewares/rateLimiter");
 
-const server = new Server();
-server.listen(3000, () => {
-    console.log("Server running on port 3000");
+const app = new Server();
+app.listen(3000, () => {
+    console.log("Server is running on port 3000");
 });
 
-server.static("./public");
+app.static("public");
 
-server.use(logger);
+app.use(logger);
+app.use(rateLimiter({
+    windowSize: 1000 * 60, // 10 requests per minute
+    maxRequests: 10
+}));
+app.use(bodyParser);
 
-server.use(bodyParser);
-
-server.get("/", (req, res) => {
+app.get("/", (req, res) => {
     res.setHeader("Content-Type", "text/html");
     res.end("Hello World");
 })
 
-server.get("/json", (req, res) => {
+app.get("/json", (req, res) => {
     // form with two inputs
-    res.json(req)
+    res.json(res)
 })
 
-server.post("/test", (req, res) => {
+app.post("/test", (req, res) => {
     console.log(req.body);
     res.end("test");
 })
 
-server.get("/app/html", (req, res) => {
+app.get("/app/html", (req, res) => {
     res.render("index.html");
 })
 
-server.get("/a7a", (req, res) => {
+app.get("/a7a", (req, res) => {
     res.setHeader("Content-Type", "text/html");
     res.end("<h1>a7a</h1>");
 })
 
-server.get("/download", (req, res) => {
+app.get("/download", (req, res) => {
     res.download("./public/img.jpg", "1.jpg");
     // res.redirect("/app/html");
 })
 
-server.get("/redirect", (req, res) => {
+app.get("/redirect", (req, res) => {
     res.redirect("/app/html");
 })
 
-server.get("/login", (req, res) => {
+app.get("/login", (req, res) => {
+
     res.render("login.html");
 })
 
-server.post("/login", (req, res) => {    
+app.post("/login", (req, res) => {    
     console.log(req.body);
     res.end("login");
 })
